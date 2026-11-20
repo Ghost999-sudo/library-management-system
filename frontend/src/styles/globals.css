@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+@import './variables.css';
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-size: var(--text-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    font-size: var(--text-page);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: var(--text-section);
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--color-navy-hover);
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-info);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-blue);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* WCAG-friendly minimum touch target (section 11). */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
