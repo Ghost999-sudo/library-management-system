@@ -1,7 +1,8 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–2 (setup and shared UI foundation) are complete**. Feature screens arrive in later phases.
+**Phases 1–3 (setup, shared UI, login and role dashboards) are complete**. Remaining feature
+screens arrive in later phases.
 
 ## Requirements
 
@@ -49,7 +50,7 @@ src/
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
   components/     common / layout / forms / tables / feedback
-  pages/          feature screens (Phases 3-10)
+  pages/          auth + dashboards complete; remaining screens in Phases 4-10
   test/           test setup
 ```
 
@@ -78,8 +79,26 @@ src/
 - Accessible by design: labelled controls, `aria-invalid`/`aria-describedby`, focus-trapped dialogs with Escape support, `sr-only` captions, visible focus rings, reduced-motion handling, and status text that never relies on colour alone.
 - `DashboardLayout` wraps authenticated routes; `AuthLayout` is ready for the login screen in Phase 3.
 
+## Login and dashboards (Phase 3)
+
+- `pages/auth/LoginPage.jsx` — RHF + Zod validation, show/hide password, loading state,
+  clear error alert, and redirect to the role dashboard (or the originally requested path).
+  There is deliberately **no public registration** — staff create member accounts.
+- `pages/dashboards/AdminDashboard.jsx` — all eight summary cards come from
+  `GET /dashboard/summary`; recent loans, recent members and overdue records use real
+  paged/sorted endpoints. Availability and fine summaries use the same response.
+- `pages/dashboards/LibrarianDashboard.jsx` — five operational cards plus quick actions
+  and recent/overdue loans.
+- `pages/dashboards/MemberDashboard.jsx` — derives counts **only** from `/loans/me` and
+  `/fines/me` (MEMBER-scoped). Due soon is a client-side convenience within 7 days;
+  authoritative overdue status remains on the backend.
+- Router guards enforce role prefixes; the backend remains the real authorization authority.
+- Charts are intentionally deferred to Phase 10 so they can use real report data instead of
+  invented statistics.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
 tests for shared buttons, badges, tables, pagination, dialogs, alerts, form controls,
-and formatting helpers. Run `npm.cmd test` before proceeding to each subsequent phase.
+and formatting helpers. Phase 3 adds login validation/redirect tests and dashboard data
+tests. Run `npm.cmd test` before proceeding to each subsequent phase.
