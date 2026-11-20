@@ -1,8 +1,8 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–3 (setup, shared UI, login and role dashboards) are complete**. Remaining feature
-screens arrive in later phases.
+**Phases 1–4 (setup, shared UI, login/dashboards and catalog) are complete**. Remaining
+feature screens arrive in later phases.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ src/
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
   components/     common / layout / forms / tables / feedback
-  pages/          auth + dashboards complete; remaining screens in Phases 4-10
+  pages/          auth, dashboards, books + catalog complete; rest in Phases 5-10
   test/           test setup
 ```
 
@@ -96,9 +96,26 @@ src/
 - Charts are intentionally deferred to Phase 10 so they can use real report data instead of
   invented statistics.
 
+## Catalog (Phase 4)
+
+- `pages/books/CataloguePage.jsx` — member-facing catalogue: backend keyword search and
+  pagination, availability counts from real `copies[]`, book details dialog. Category
+  selection filters within the current page because the backend has no category filter
+  parameter; this is stated in the UI rather than silently misrepresenting the data.
+- `pages/books/BookListPage.jsx`, `BookFormPage.jsx`, `BookDetailsPage.jsx` — staff book
+  management. The form mirrors the backend DTOs exactly (`categoryId`, `authorIds[]`,
+  `copies[]` with `accessionNumber`/`acquiredDate`); copies are only sent on create.
+- `pages/catalog/CategoriesPage.jsx`, `AuthorsPage.jsx` — searchable tables with create,
+  edit and confirmed delete; delete failures (e.g. still referenced by books) are surfaced.
+- `pages/catalog/BookCopiesPage.jsx` — copies are always scoped to a selected book because
+  there is no global copies endpoint; includes status filtering and backend-enforced status
+  changes.
+- All writes are staff-only in the UI, with the backend still authoritative.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
 tests for shared buttons, badges, tables, pagination, dialogs, alerts, form controls,
 and formatting helpers. Phase 3 adds login validation/redirect tests and dashboard data
+tests. Phase 4 adds catalogue search, book-form payload, category CRUD and copy-filter
 tests. Run `npm.cmd test` before proceeding to each subsequent phase.
