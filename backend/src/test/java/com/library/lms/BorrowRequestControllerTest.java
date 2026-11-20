@@ -52,7 +52,7 @@ class BorrowRequestControllerTest {
         mockMvc.perform(post("/api/v1/borrow-requests/1/approve")
                         .header("Authorization", bearer(1L, User.Role.MEMBER))
                         .contentType("application/json")
-                        .content("{\"copyId\":8}"))
+                        .content("{\"copyId\":8,\"dueDate\":\"2099-01-01\"}"))
                 .andExpect(status().isForbidden());
     }
 
@@ -74,7 +74,7 @@ class BorrowRequestControllerTest {
         mockMvc.perform(post("/api/v1/borrow-requests/1/approve")
                         .header("Authorization", bearer(2L, User.Role.LIBRARIAN))
                         .contentType("application/json")
-                        .content("{\"copyId\":8}"))
+                        .content("{\"copyId\":8,\"dueDate\":\"2099-01-01\"}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/borrow-requests/1/reject")
@@ -82,6 +82,21 @@ class BorrowRequestControllerTest {
                         .contentType("application/json")
                         .content("{\"note\":\"No copies available\"}"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void approvalRequiresPresentOrFutureDueDate() throws Exception {
+        mockMvc.perform(post("/api/v1/borrow-requests/1/approve")
+                        .header("Authorization", bearer(2L, User.Role.LIBRARIAN))
+                        .contentType("application/json")
+                        .content("{\"copyId\":8}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/v1/borrow-requests/1/approve")
+                        .header("Authorization", bearer(2L, User.Role.LIBRARIAN))
+                        .contentType("application/json")
+                        .content("{\"copyId\":8,\"dueDate\":\"2020-01-01\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

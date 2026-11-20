@@ -153,8 +153,14 @@ starting the backend, because `ddl-auto=validate` requires the new table to exis
 - `pages/loans/MyBorrowRequestsPage.jsx` — MEMBER-only `/borrow-requests/me`, read-only.
   A pending request reserves nothing and starts no due date.
 - `pages/loans/BorrowRequestsPage.jsx` — staff queue at `/{role}/loans/requests`.
-  Approving opens a copy picker and uses `/borrow-requests/{id}/approve`; rejecting
+  Approving requires choosing an available copy and a return date and calls
+  `/borrow-requests/{id}/approve`. That date becomes the loan's due date. Rejecting
   records an optional reason. Both decisions are final and locked server-side.
+- Overdue fines accrue **automatically once per day** (total-to-date: overdue days
+  after the configured grace period × fine-per-day) while a loan remains borrowed, so
+  fines are visible before return. The amount is finalized on return; waived fines are
+  not re-accrued. If the backend is down at the scheduled time, the next run
+  recalculates the correct total.
 - `services/borrowRequestService.js` + `components/loans/BorrowRequestHelpers.jsx` —
   API calls and shared accessible table/dialog components.
 - Backend endpoints: `POST /borrow-requests` (MEMBER), `GET /borrow-requests/me`

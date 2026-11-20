@@ -42,11 +42,11 @@ export default function BorrowRequestsPage() {
     setFormError(null)
   }
 
-  const onApprove = async (copyId) => {
+  const onApprove = async (copyId, dueDate) => {
     setSubmitting(true)
     setFormError(null)
     try {
-      const loan = await borrowRequestService.approve(decision.request.requestId, copyId)
+      const loan = await borrowRequestService.approve(decision.request.requestId, copyId, dueDate)
       notify.success(`Book issued. Due ${formatDate(loan.dueDate)}.`)
       closeDecision()
       run()

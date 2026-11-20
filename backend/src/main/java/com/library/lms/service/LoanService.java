@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -47,6 +46,7 @@ public class LoanService {
     private final UserRepository userRepository;
     private final FineRepository fineRepository;
     private final LibrarySettingsRepository settingsRepository;
+    private final FineAccrualService fineAccrualService;
     private final Clock clock;
 
     public LoanService(LoanRepository loanRepository,
@@ -55,6 +55,7 @@ public class LoanService {
                        UserRepository userRepository,
                        FineRepository fineRepository,
                        LibrarySettingsRepository settingsRepository,
+                       FineAccrualService fineAccrualService,
                        Clock clock) {
         this.loanRepository = loanRepository;
         this.bookCopyRepository = bookCopyRepository;
@@ -62,16 +63,38 @@ public class LoanService {
         this.userRepository = userRepository;
         this.fineRepository = fineRepository;
         this.settingsRepository = settingsRepository;
+        this.fineAccrualService = fineAccrualService;
         this.clock = clock;
     }
 
     /**
-     * Issues a copy to a member. Every rule here is enforced server-side, including
-     * the ones the frontend might try to skip (dates, limits and outstanding fines).
+     * Issues a copy using the configured borrowing period. Staff issue screens use
+     * this method; borrow-request approval passes an explicit return date instead.
      */
     @Transactional
     public LoanResponse issue(IssueBookRequest request, Long staffUserId) {
+        return issueWithDueDate(request, staffUserId, null);
+    }
+
+    /**
+     * Issues a copy with a staff-chosen due date. Every other rule is still enforced
+     * here, including limits, outstanding fines and atomic copy availability.
+     */
+    @Transactional
+    public LoanResponse issue(IssueBookRequest request, Long staffUserId, LocalDate chosenDueDate) {
+        return issueWithDueDate(request, staffUserId, chosenDueDate);
+    }
+
+    private LoanResponse issueWithDueDate(IssueBookRequest request, Long staffUserId,
+                                          LocalDate chosenDueDate) {
         LibrarySettings settings = findSettings();
+        LocalDate today = LocalDate.now(clock);
+        LocalDate dueDate = chosenDueDate == null
+                ? today.plusDays(settings.getBorrowingPeriodDays())
+                : chosenDueDate;
+        if (dueDate.isBefore(today)) {
+            throw new BusinessRuleException("Return date must be today or later");
+        }
 
         Member member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -102,13 +125,12 @@ public class LoanService {
                     "Book copy is not available: " + request.getCopyId());
         }
 
-        LocalDate today = LocalDate.now(clock);
         Loan loan = new Loan();
         loan.setMember(member);
         loan.setCopy(copy);
         loan.setIssuedBy(userRepository.getReferenceById(staffUserId));
         loan.setIssueDate(today);
-        loan.setDueDate(today.plusDays(settings.getBorrowingPeriodDays()));
+        loan.setDueDate(dueDate);
         loan.setReturnDate(null);
         loan.setStatus(Loan.Status.BORROWED);
         Loan saved = loanRepository.save(loan);
@@ -142,8 +164,9 @@ public class LoanService {
     }
 
     /**
-     * Records the return, frees the copy and assesses an overdue fine when applicable.
-     * A loan can only be returned once; the locked row prevents double processing.
+     * Records the return, frees the copy and finalizes any overdue fine as of today.
+     * Daily accrual may have created/updated the fine while the loan was overdue; this
+     * keeps the final amount correct. A loan can only be returned once.
      */
     @Transactional
     public ReturnResponse returnBook(Long loanId) {
@@ -164,21 +187,7 @@ public class LoanService {
         copy.setStatus(BookCopy.Status.AVAILABLE);
         bookCopyRepository.save(copy);
 
-        // Grace days are free; only whole overdue days are charged.
-        LocalDate chargeFrom = loan.getDueDate().plusDays(settings.getFineGracePeriodDays());
-        long overdueDays = ChronoUnit.DAYS.between(chargeFrom, today);
-        Fine fine = fineRepository.findByLoanLoanId(loanId).orElse(null);
-
-        if (fine == null && overdueDays > 0) {
-            Fine assessed = new Fine();
-            assessed.setLoan(loan);
-            assessed.setFineAmount(
-                    settings.getFinePerDay().multiply(BigDecimal.valueOf(overdueDays)));
-            assessed.setAmountPaid(BigDecimal.ZERO);
-            assessed.setStatus(Fine.Status.UNPAID);
-            fine = fineRepository.save(assessed);
-        }
-        // If a fine already exists we reuse it; a second fine per loan is never created.
+        Fine fine = fineAccrualService.finalizeForReturn(loan, settings, today);
 
         return new ReturnResponse(loan, fine);
     }

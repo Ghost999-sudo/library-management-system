@@ -172,15 +172,16 @@ describe('MyLoansPage', () => {
 })
 
 describe('BorrowRequestsPage', () => {
-  it('approves a pending request with a chosen available copy', async () => {
+  it('approves a pending request with a chosen copy and return date', async () => {
     const user = userEvent.setup()
     render(<MemoryRouter><BorrowRequestsPage /></MemoryRouter>)
 
     await user.click(await screen.findByRole('button', { name: 'Approve' }))
-    await user.selectOptions(await screen.findByLabelText(/available copy/i), '11')
+    await user.type(await screen.findByLabelText(/return date/i), '2099-01-01')
+    await user.selectOptions(screen.getByLabelText(/available copy/i), '11')
     await user.click(screen.getByRole('button', { name: /approve and issue/i }))
 
-    await waitFor(() => expect(mockApprove).toHaveBeenCalledWith(7, 11))
+    await waitFor(() => expect(mockApprove).toHaveBeenCalledWith(7, 11, '2099-01-01'))
   })
 
   it('rejects a pending request with an optional reason', async () => {

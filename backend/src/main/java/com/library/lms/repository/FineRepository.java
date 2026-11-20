@@ -44,4 +44,9 @@ public interface FineRepository extends JpaRepository<Fine, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select f from Fine f where f.fineId = :fineId")
     Optional<Fine> findByIdForUpdate(@Param("fineId") Long fineId);
+
+    /** Locks the fine for a loan so accrual/return and payments do not race. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select f from Fine f where f.loan.loanId = :loanId")
+    Optional<Fine> findByLoanLoanIdForUpdate(@Param("loanId") Long loanId);
 }

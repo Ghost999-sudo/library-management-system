@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { format } from 'date-fns'
 import { Button } from '../common/Button.jsx'
 import { DataTable } from '../tables/DataTable.jsx'
 import { StatusBadge } from '../common/StatusBadge.jsx'
 import { Modal } from '../feedback/Modal.jsx'
 import { AlertMessage } from '../feedback/AlertMessage.jsx'
+import { FormInput } from '../forms/FormInput.jsx'
 import { FormSelect } from '../forms/FormSelect.jsx'
 import { BASE_INPUT } from '../forms/FormInput.jsx'
 import { useAsync } from '../../hooks/useAsync.js'
@@ -69,6 +71,8 @@ export function BorrowRequestTable({
 /** The librarian chooses an available copy of the requested title before issuing. */
 export function ApproveRequestDialog({ request, onConfirm, onCancel, submitting }) {
   const [copyId, setCopyId] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const today = format(new Date(), 'yyyy-MM-dd')
   const { data: copies, loading, error } = useAsync(
     () => (request ? catalogService.getAvailableCopies(request.bookId) : Promise.resolve([])),
     [request?.bookId],
@@ -76,11 +80,12 @@ export function ApproveRequestDialog({ request, onConfirm, onCancel, submitting 
 
   useEffect(() => {
     setCopyId('')
+    setDueDate('')
   }, [request?.requestId])
 
   const submit = (event) => {
     event.preventDefault()
-    if (copyId) onConfirm(Number(copyId))
+    if (copyId && dueDate) onConfirm(Number(copyId), dueDate)
   }
 
   return (
@@ -91,10 +96,20 @@ export function ApproveRequestDialog({ request, onConfirm, onCancel, submitting 
     >
       <form onSubmit={submit} className="flex flex-col gap-base">
         <p className="text-body text-text-secondary">
-          {request?.memberName || 'The member'} asked for this title. Choose an available copy;
-          the backend then sets the issue and due dates and applies all borrowing rules.
+          {request?.memberName || 'The member'} asked for this title. Choose an available copy
+          and a return date; the backend sets the issue date and applies all borrowing rules.
         </p>
         {error && <AlertMessage variant="error">{error.message}</AlertMessage>}
+        <FormInput
+          label="Return date"
+          name="dueDate"
+          type="date"
+          required
+          min={today}
+          value={dueDate}
+          onChange={(event) => setDueDate(event.target.value)}
+          hint="Late returns after the configured grace period are fined automatically."
+        />
         <FormSelect
           label="Available copy"
           name="copyId"
@@ -114,7 +129,7 @@ export function ApproveRequestDialog({ request, onConfirm, onCancel, submitting 
           </AlertMessage>
         )}
         <div className="flex flex-wrap gap-sm">
-          <Button type="submit" loading={submitting} disabled={!copyId || !copies?.length}>
+          <Button type="submit" loading={submitting} disabled={!copyId || !dueDate || !copies?.length}>
             Approve and issue
           </Button>
           <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>

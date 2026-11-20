@@ -200,6 +200,7 @@ class LoanManagementTest {
         when(loanRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(loan));
         when(settingsRepository.findFirstByOrderBySettingIdAsc())
                 .thenReturn(Optional.of(settings()));
+        when(fineRepository.findByLoanLoanIdForUpdate(50L)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/v1/loans/50/return")
                         .header("Authorization", bearer(2L, User.Role.LIBRARIAN)))
@@ -212,7 +213,7 @@ class LoanManagementTest {
     }
 
     @Test
-    void overdueReturnAssessesOneFine() throws Exception {
+    void overdueReturnFinalizesAccruedFine() throws Exception {
         BookCopy copy = copy(30L, BookCopy.Status.BORROWED);
         Loan loan = loan(50L, member(1L, Member.Status.ACTIVE), copy,
                 user(2L, User.Role.LIBRARIAN),
@@ -220,7 +221,7 @@ class LoanManagementTest {
         when(loanRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(loan));
         when(settingsRepository.findFirstByOrderBySettingIdAsc())
                 .thenReturn(Optional.of(settings()));
-        when(fineRepository.findByLoanLoanId(50L)).thenReturn(Optional.empty());
+        when(fineRepository.findByLoanLoanIdForUpdate(50L)).thenReturn(Optional.empty());
         when(fineRepository.save(any(Fine.class))).thenAnswer(inv -> {
             Fine fine = inv.getArgument(0);
             fine.setFineId(9L);

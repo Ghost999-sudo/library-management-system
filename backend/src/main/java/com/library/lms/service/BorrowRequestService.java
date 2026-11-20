@@ -119,7 +119,7 @@ public class BorrowRequestService {
         IssueBookRequest issue = new IssueBookRequest();
         issue.setMemberId(request.getMember().getMemberId());
         issue.setCopyId(copy.getCopyId());
-        LoanResponse loan = loanService.issue(issue, staffUserId);
+        LoanResponse loan = loanService.issue(issue, staffUserId, payload.getDueDate());
 
         request.setStatus(BorrowRequest.Status.APPROVED);
         request.setDecidedBy(userRepository.getReferenceById(staffUserId));

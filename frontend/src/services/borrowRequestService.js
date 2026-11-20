@@ -18,8 +18,9 @@ export const borrowRequestService = {
     return data
   },
 
-  async approve(requestId, copyId) {
-    const { data } = await api.post(`/borrow-requests/${requestId}/approve`, { copyId })
+  /** dueDate is chosen by the librarian and becomes the loan's return deadline. */
+  async approve(requestId, copyId, dueDate) {
+    const { data } = await api.post(`/borrow-requests/${requestId}/approve`, { copyId, dueDate })
     return data
   },
 
