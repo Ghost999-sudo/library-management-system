@@ -1,7 +1,7 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–6 (setup, shared UI, login/dashboards, catalog, members and loans) are complete**.
+**Phases 1–7 (setup, shared UI, login/dashboards, catalog, members, loans and fines) are complete**.
 Remaining feature screens arrive in later phases.
 
 ## Requirements
@@ -50,7 +50,7 @@ src/
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
   components/     common / layout / forms / tables / feedback
-  pages/          auth, dashboards, books, catalog, members + loans complete; rest in Phases 7-10
+  pages/          auth, dashboards, books, catalog, members, loans + fines complete; rest in Phases 8-10
   test/           test setup
 ```
 
@@ -142,6 +142,22 @@ src/
 - `hooks/useReturnLoan.js` + `components/loans/` — one confirmed return workflow. The
   optional fine from `ReturnResponse.fine` is shown in the success toast.
 
+## Fine management (Phase 7)
+
+- `pages/fines/FineListPage.jsx` — staff fine history with search/status filtering, plus
+  `mode="payments"` for the Fine Payments screen. Searching filters the first 200 fines
+  locally because the backend has no fine search/filter parameters; the UI states this.
+- `pages/fines/FineDetailsPage.jsx` — staff-only detail view combining `GET /fines/{id}`
+  and `GET /fines/{id}/payments`. There is no global payments collection, so receipts are
+  only visible here, per fine.
+- `pages/fines/MyFinesPage.jsx` — MEMBER-only `/fines/me`, read-only. The backend restricts
+  `/fines/{id}` and payment endpoints to staff, so this screen uses only `FineResponse`
+  fields (including the backend-calculated `outstandingAmount`); it never recalculates.
+- `hooks/useRecordPayment.js` + `components/fines/` — one payment workflow sending exactly
+  `{amount, paymentMethod, referenceNumber}` to `POST /fines/{id}/payments`. Amounts over
+  the outstanding balance are blocked in the form and rejected by the backend; fine status
+  transitions (`UNPAID` → `PARTIALLY_PAID` → `PAID`) remain backend-owned.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
@@ -150,4 +166,5 @@ and formatting helpers. Phase 3 adds login validation/redirect tests and dashboa
 tests. Phase 4 adds catalogue search, book-form payload, category CRUD and copy-filter
 tests. Phase 5 adds member search, create/update payload, status-change and profile-scope
 tests. Phase 6 adds loan rendering, issue payload, return workflow and member scope tests.
-Run `npm.cmd test` before proceeding to each subsequent phase.
+Phase 7 adds fine rendering, payment payload validation, backend-scoped member fines and
+staff-only detail/payment tests. Run `npm.cmd test` before proceeding to each subsequent phase.
