@@ -24,6 +24,9 @@ import MyLoansPage from '../pages/loans/MyLoansPage.jsx'
 import FineListPage from '../pages/fines/FineListPage.jsx'
 import FineDetailsPage from '../pages/fines/FineDetailsPage.jsx'
 import MyFinesPage from '../pages/fines/MyFinesPage.jsx'
+import UserListPage from '../pages/admin/UserListPage.jsx'
+import UserFormPage from '../pages/admin/UserFormPage.jsx'
+import SettingsPage from '../pages/admin/SettingsPage.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import RoleBasedRoute from './RoleBasedRoute.jsx'
 
@@ -50,6 +53,14 @@ const staffLoanRoutes = (prefix) => [
   { path: `${prefix}/overdue`, element: <OverdueLoansPage /> },
 ]
 
+/** Accounts and policy are ADMIN-only in the backend; librarians never see these routes. */
+const adminRoutes = (prefix) => [
+  { path: `${prefix}/users`, element: <UserListPage /> },
+  { path: `${prefix}/users/new`, element: <UserFormPage /> },
+  { path: `${prefix}/users/:userId/edit`, element: <UserFormPage /> },
+  { path: `${prefix}/settings`, element: <SettingsPage /> },
+]
+
 const staffFineRoutes = (prefix) => [
   { path: `${prefix}/fines`, element: <FineListPage /> },
   { path: `${prefix}/fines/:fineId`, element: <FineDetailsPage /> },
@@ -65,7 +76,7 @@ const staffMemberRoutes = (prefix) => [
 ]
 
 const featureRoutes = {
-  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin'), ...staffLoanRoutes('/admin'), ...staffFineRoutes('/admin')],
+  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin'), ...staffLoanRoutes('/admin'), ...staffFineRoutes('/admin'), ...adminRoutes('/admin')],
   [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian'), ...staffLoanRoutes('/librarian'), ...staffFineRoutes('/librarian')],
   [ROLES.MEMBER]: [
     { path: '/member/catalogue', element: <CataloguePage /> },

@@ -1,8 +1,8 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–7 (setup, shared UI, login/dashboards, catalog, members, loans and fines) are complete**.
-Remaining feature screens arrive in later phases.
+**Phases 1–8 (setup, shared UI, login/dashboards, catalog, members, loans, fines and
+administration) are complete**. Only reports remain.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ src/
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
   components/     common / layout / forms / tables / feedback
-  pages/          auth, dashboards, books, catalog, members, loans + fines complete; rest in Phases 8-10
+  pages/          auth, dashboards, books, catalog, members, loans, fines + admin complete; reports remain
   test/           test setup
 ```
 
@@ -158,6 +158,20 @@ src/
   the outstanding balance are blocked in the form and rejected by the backend; fine status
   transitions (`UNPAID` → `PARTIALLY_PAID` → `PAID`) remain backend-owned.
 
+## Administration (Phase 8)
+
+- `pages/admin/UserListPage.jsx` — ADMIN-only account list with search and role/status filters
+  over the first 200 accounts (the backend has no user search parameters). Accounts are
+  **deactivated, never deleted** because the backend exposes no delete endpoint; the UI says so.
+- `pages/admin/UserFormPage.jsx` — create sends `{username, email, password, role}` to
+  `POST /users`; update sends only `{email, role}` plus an optional password to `PUT /users/{id}`.
+  Username is read-only when editing because `UpdateUserRequest` has no username field.
+- `pages/admin/SettingsPage.jsx` — reads/writes the single settings row via `/settings`.
+  All five policy values are sent together; validation mirrors the backend (positive limits,
+  non-negative money and grace period). Only ADMIN sees the route because writes are
+  ADMIN-only, even though staff may read settings through the API.
+- No password hashes are ever read or rendered; `UserResponse` and `UserInfo` are safe subsets.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
@@ -167,4 +181,5 @@ tests. Phase 4 adds catalogue search, book-form payload, category CRUD and copy-
 tests. Phase 5 adds member search, create/update payload, status-change and profile-scope
 tests. Phase 6 adds loan rendering, issue payload, return workflow and member scope tests.
 Phase 7 adds fine rendering, payment payload validation, backend-scoped member fines and
-staff-only detail/payment tests. Run `npm.cmd test` before proceeding to each subsequent phase.
+staff-only detail/payment tests. Phase 8 adds user create/update payload, status-change and
+settings validation tests. Run `npm.cmd test` before proceeding to each subsequent phase.
