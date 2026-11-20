@@ -13,6 +13,10 @@ import BookDetailsPage from '../pages/books/BookDetailsPage.jsx'
 import CategoriesPage from '../pages/catalog/CategoriesPage.jsx'
 import AuthorsPage from '../pages/catalog/AuthorsPage.jsx'
 import BookCopiesPage from '../pages/catalog/BookCopiesPage.jsx'
+import MemberListPage from '../pages/members/MemberListPage.jsx'
+import MemberFormPage from '../pages/members/MemberFormPage.jsx'
+import MemberDetailsPage from '../pages/members/MemberDetailsPage.jsx'
+import ProfilePage from '../pages/members/ProfilePage.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import RoleBasedRoute from './RoleBasedRoute.jsx'
 
@@ -32,14 +36,25 @@ const staffCatalogRoutes = (prefix) => [
   { path: `${prefix}/book-copies`, element: <BookCopiesPage /> },
 ]
 
-const catalogRoutes = {
-  [ROLES.ADMIN]: staffCatalogRoutes('/admin'),
-  [ROLES.LIBRARIAN]: staffCatalogRoutes('/librarian'),
-  [ROLES.MEMBER]: [{ path: '/member/catalogue', element: <CataloguePage /> }],
+const staffMemberRoutes = (prefix) => [
+  { path: `${prefix}/members`, element: <MemberListPage /> },
+  { path: `${prefix}/members/new`, element: <MemberFormPage /> },
+  { path: `${prefix}/members/:memberId/edit`, element: <MemberFormPage /> },
+  { path: `${prefix}/members/:memberId`, element: <MemberDetailsPage /> },
+  { path: `${prefix}/profile`, element: <ProfilePage /> },
+]
+
+const featureRoutes = {
+  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin')],
+  [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian')],
+  [ROLES.MEMBER]: [
+    { path: '/member/catalogue', element: <CataloguePage /> },
+    { path: '/member/profile', element: <ProfilePage /> },
+  ],
 }
 
 const implementedPaths = new Set(
-  Object.values(catalogRoutes)
+  Object.values(featureRoutes)
     .flat()
     .map((route) => route.path)
     .concat(Object.values(ROLE_DASHBOARD)),
@@ -80,7 +95,7 @@ export default function AppRoutes() {
             return (
               <Route key={role} element={<ProtectedRoute allowedRoles={[role]} />}>
                 <Route path={ROLE_DASHBOARD[role]} element={<Dashboard />} />
-                {catalogRoutes[role].map(({ path, element }) => (
+                {featureRoutes[role].map(({ path, element }) => (
                   <Route key={path} path={path} element={element} />
                 ))}
                 {placeholderRoutes[role].map(({ to, label }) => (
