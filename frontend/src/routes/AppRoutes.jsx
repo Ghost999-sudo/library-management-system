@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
 import { PageHeader } from '../components/layout/PageHeader.jsx'
@@ -28,6 +29,10 @@ import UserListPage from '../pages/admin/UserListPage.jsx'
 import UserFormPage from '../pages/admin/UserFormPage.jsx'
 import SettingsPage from '../pages/admin/SettingsPage.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
+
+/** Charts are heavy; keep them out of the main bundle. */
+const LoanReportsPage = lazy(() => import('../pages/reports/LoanReportsPage.jsx'))
+const FineReportsPage = lazy(() => import('../pages/reports/FineReportsPage.jsx'))
 import RoleBasedRoute from './RoleBasedRoute.jsx'
 
 const dashboards = {
@@ -53,6 +58,11 @@ const staffLoanRoutes = (prefix) => [
   { path: `${prefix}/overdue`, element: <OverdueLoansPage /> },
 ]
 
+const staffReportRoutes = (prefix) => [
+  { path: `${prefix}/reports/loans`, element: <LoanReportsPage /> },
+  { path: `${prefix}/reports/fines`, element: <FineReportsPage /> },
+]
+
 /** Accounts and policy are ADMIN-only in the backend; librarians never see these routes. */
 const adminRoutes = (prefix) => [
   { path: `${prefix}/users`, element: <UserListPage /> },
@@ -76,8 +86,8 @@ const staffMemberRoutes = (prefix) => [
 ]
 
 const featureRoutes = {
-  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin'), ...staffLoanRoutes('/admin'), ...staffFineRoutes('/admin'), ...adminRoutes('/admin')],
-  [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian'), ...staffLoanRoutes('/librarian'), ...staffFineRoutes('/librarian')],
+  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin'), ...staffLoanRoutes('/admin'), ...staffFineRoutes('/admin'), ...adminRoutes('/admin'), ...staffReportRoutes('/admin')],
+  [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian'), ...staffLoanRoutes('/librarian'), ...staffFineRoutes('/librarian'), ...staffReportRoutes('/librarian')],
   [ROLES.MEMBER]: [
     { path: '/member/catalogue', element: <CataloguePage /> },
     { path: '/member/loans', element: <MyLoansPage /> },
@@ -117,30 +127,32 @@ function Placeholder({ title }) {
 
 export default function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<RoleBasedRoute />} />
-      <Route path="/login" element={<LoginPage />} />
+    <Suspense fallback={<p className="p-lg text-body text-text-secondary">Loading…</p>}>
+      <Routes>
+        <Route path="/" element={<RoleBasedRoute />} />
+        <Route path="/login" element={<LoginPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
-          {Object.values(ROLES).map((role) => {
-            const Dashboard = dashboards[role]
-            return (
-              <Route key={role} element={<ProtectedRoute allowedRoles={[role]} />}>
-                <Route path={ROLE_DASHBOARD[role]} element={<Dashboard />} />
-                {featureRoutes[role].map(({ path, element }) => (
-                  <Route key={path} path={path} element={element} />
-                ))}
-                {placeholderRoutes[role].map(({ to, label }) => (
-                  <Route key={to} path={to} element={<Placeholder title={label} />} />
-                ))}
-              </Route>
-            )
-          })}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            {Object.values(ROLES).map((role) => {
+              const Dashboard = dashboards[role]
+              return (
+                <Route key={role} element={<ProtectedRoute allowedRoles={[role]} />}>
+                  <Route path={ROLE_DASHBOARD[role]} element={<Dashboard />} />
+                  {featureRoutes[role].map(({ path, element }) => (
+                    <Route key={path} path={path} element={element} />
+                  ))}
+                  {placeholderRoutes[role].map(({ to, label }) => (
+                    <Route key={to} path={to} element={<Placeholder title={label} />} />
+                  ))}
+                </Route>
+              )
+            })}
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="*" element={<Placeholder title="Page not found" />} />
-    </Routes>
+        <Route path="*" element={<Placeholder title="Page not found" />} />
+      </Routes>
+    </Suspense>
   )
 }

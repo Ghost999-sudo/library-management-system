@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Plus } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { useAsync } from '../../hooks/useAsync.js'
 import { userService } from '../../services/userService.js'
 import { PageHeader } from '../../components/layout/PageHeader.jsx'
@@ -20,6 +21,7 @@ const FETCH_SIZE = 200
 export default function UserListPage() {
   const location = useLocation()
   const basePath = location.pathname
+  const { user: currentUser } = useAuth()
   const { data, loading, error, run } = useAsync(
     () => userService.getUsers({ size: FETCH_SIZE, sort: 'userId,asc' }),
     [],
@@ -29,6 +31,9 @@ export default function UserListPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(0)
   const [pendingStatus, setPendingStatus] = useState(null)
+
+  const isCurrentUser = (candidate) =>
+    Boolean(currentUser) && String(candidate?.userId) === String(currentUser.userId)
 
   const term = search.trim().toLowerCase()
   const users = (data?.content || []).filter((user) => {
@@ -49,6 +54,11 @@ export default function UserListPage() {
 
   const applyStatus = async () => {
     if (!pendingStatus) return
+    if (isCurrentUser(pendingStatus.user) && pendingStatus.status === 'INACTIVE') {
+      notify.warning('You cannot deactivate your own account.')
+      setPendingStatus(null)
+      return
+    }
     try {
       await userService.changeStatus(pendingStatus.user.userId, pendingStatus.status)
       notify.success(`Account marked ${pendingStatus.status.toLowerCase()}.`)
@@ -78,6 +88,7 @@ export default function UserListPage() {
       header: 'Actions',
       render: (row) => {
         const nextStatus = row.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+        const selfDeactivation = isCurrentUser(row) && nextStatus === 'INACTIVE'
         return (
           <div className="flex flex-wrap gap-sm">
             <Link
@@ -89,6 +100,8 @@ export default function UserListPage() {
             <Button
               variant="secondary"
               size="sm"
+              disabled={selfDeactivation}
+              title={selfDeactivation ? 'You cannot deactivate your own account.' : undefined}
               onClick={() => setPendingStatus({ user: row, status: nextStatus })}
             >
               {nextStatus === 'ACTIVE' ? 'Activate' : 'Deactivate'}
@@ -114,7 +127,7 @@ export default function UserListPage() {
         }
       />
 
-      <div className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base">
+      <div className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base">
         <SearchInput
           label="Search users"
           value={search}
@@ -128,7 +141,7 @@ export default function UserListPage() {
           <select
             value={roleFilter}
             onChange={(event) => setRoleFilter(event.target.value)}
-            className="min-h-11 rounded-md border border-border bg-surface px-md text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-md text-label"
           >
             <option value="">All roles</option>
             {Object.values(ROLES).map((role) => <option key={role} value={role}>{role}</option>)}
@@ -139,7 +152,7 @@ export default function UserListPage() {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="min-h-11 rounded-md border border-border bg-surface px-md text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-md text-label"
           >
             <option value="">All statuses</option>
             {USER_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}
@@ -149,7 +162,8 @@ export default function UserListPage() {
 
       <p className="text-support text-text-secondary">
         Search and filters apply to the first {FETCH_SIZE} accounts returned by the backend.
-        Accounts are deactivated rather than deleted so borrowing history stays intact.
+        Accounts are deactivated rather than deleted so borrowing history stays intact. Your own
+        account cannot be deactivated or demoted here.
       </p>
 
       {error && <ErrorState message={error.message} onRetry={run} />}

@@ -136,7 +136,7 @@ export default function BookFormPage() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-lg">
         {errors.root && <AlertMessage variant="error" title="Unable to save">{errors.root.message}</AlertMessage>}
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Basic information</h2>
           <div className="grid grid-cols-1 gap-base md:grid-cols-2">
             <FormInput label="Title" name="title" required error={errors.title?.message} {...register('title')} />
@@ -155,7 +155,7 @@ export default function BookFormPage() {
           <FormTextarea label="Description" name="description" error={errors.description?.message} className="mt-base" {...register('description')} />
         </section>
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Authors</h2>
           <fieldset className="flex flex-wrap gap-md">
             <legend className="sr-only">Select one or more authors</legend>
@@ -173,7 +173,7 @@ export default function BookFormPage() {
         </section>
 
         {!isEditing && (
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <div className="mb-base flex items-center justify-between gap-sm">
               <h2 className="text-card font-semibold">Physical copies</h2>
               <Button variant="secondary" size="sm" onClick={() => append({ accessionNumber: '', acquiredDate: '' })}>

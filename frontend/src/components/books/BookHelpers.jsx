@@ -31,7 +31,7 @@ export const bookColumns = [
 export function BookCard({ book, onOpen }) {
   const available = availableCopyCount(book)
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border bg-surface p-base shadow-sm">
+    <article className="flex h-full flex-col rounded-card border border-border bg-surface p-base shadow-sm">
       <h3 className="text-card font-semibold">{book.title}</h3>
       <p className="mt-xs text-label text-text-secondary">{authorNames(book)}</p>
       <dl className="mt-base flex flex-col gap-xs text-support text-text-secondary">

@@ -56,7 +56,7 @@ export default function FineListPage({ mode = 'all' }) {
         </AlertMessage>
       )}
 
-      <div className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base">
+      <div className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base">
         <SearchInput
           label="Search fines"
           value={search}
@@ -70,7 +70,7 @@ export default function FineListPage({ mode = 'all' }) {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="min-h-11 rounded-md border border-border bg-surface px-md text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-md text-label"
           >
             <option value="">All statuses</option>
             {FINE_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}

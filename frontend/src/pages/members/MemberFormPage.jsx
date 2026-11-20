@@ -140,7 +140,7 @@ export default function MemberFormPage() {
         {errors.root && <AlertMessage variant="error" title="Unable to save">{errors.root.message}</AlertMessage>}
 
         {!isEditing && (
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <h2 className="mb-base text-card font-semibold">Account</h2>
             <div className="grid grid-cols-1 gap-base md:grid-cols-2">
               <FormInput label="Username" name="username" required autoComplete="off" error={errors.username?.message} {...register('username')} />
@@ -158,7 +158,7 @@ export default function MemberFormPage() {
           </section>
         )}
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Membership details</h2>
           <div className="grid grid-cols-1 gap-base md:grid-cols-2">
             <FormInput label="Membership number" name="membershipNumber" required error={errors.membershipNumber?.message} {...register('membershipNumber')} />

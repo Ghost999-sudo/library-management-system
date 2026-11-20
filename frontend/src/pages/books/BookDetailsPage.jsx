@@ -72,7 +72,7 @@ export default function BookDetailsPage() {
 
       {data && (
         <>
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <h2 className="mb-base text-card font-semibold">Catalogue information</h2>
             <dl className="grid grid-cols-1 gap-base sm:grid-cols-2 lg:grid-cols-3">
               <div><dt className="text-support text-text-secondary">ISBN</dt><dd className="text-body">{data.isbn || '—'}</dd></div>
@@ -82,7 +82,7 @@ export default function BookDetailsPage() {
             </dl>
           </section>
 
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <div className="mb-base flex flex-wrap items-center justify-between gap-sm">
               <h2 className="text-card font-semibold">Physical copies ({(data.copies || []).length})</h2>
               <Link to={listPath.replace(/\/books$/, '/book-copies')} className="text-label font-medium text-navy-hover hover:underline">

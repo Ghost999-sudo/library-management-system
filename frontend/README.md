@@ -1,8 +1,8 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–8 (setup, shared UI, login/dashboards, catalog, members, loans, fines and
-administration) are complete**. Only reports remain.
+**all phases are complete** (setup, shared UI, login/dashboards, catalog, members, loans,
+fines, administration and reports).
 
 ## Requirements
 
@@ -49,8 +49,8 @@ src/
   context/        AuthContext
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
-  components/     common / layout / forms / tables / feedback
-  pages/          auth, dashboards, books, catalog, members, loans, fines + admin complete; reports remain
+  components/     common / layout / forms / tables / feedback / loans / fines / reports
+  pages/          all feature screens implemented
   test/           test setup
 ```
 
@@ -172,6 +172,83 @@ src/
   ADMIN-only, even though staff may read settings through the API.
 - No password hashes are ever read or rendered; `UserResponse` and `UserInfo` are safe subsets.
 
+## Reports (Phase 9)
+
+- `pages/reports/LoanReportsPage.jsx` — staff-only `GET /reports/loans?startDate=&endDate=`.
+  Cards show the backend `totalLoans` plus borrowed/returned counts derived from the returned
+  rows. The bar chart groups by **issue date**, which is the field the backend filters on.
+- `pages/reports/FineReportsPage.jsx` — staff-only `GET /reports/fines?startDate=&endDate=`.
+  Cards and charts use only backend totals (`totalFines`, `totalAssessed`, `totalCollected`)
+  and the returned fines/payments. `FineReportItem` and `PaymentReportItem` do not expose
+  assessed or payment dates, so the UI deliberately does **not** invent a daily breakdown.
+- `components/reports/ReportControls.jsx` — labelled ISO date inputs defaulting to the last
+  30 days, with client-side start/end validation mirroring the backend. An empty range is
+  never requested.
+- `recharts` was added only in this phase, and both report pages are `React.lazy` routes so
+  the charting code stays out of the initial bundle. Charts disable animation and are
+  accompanied by text summaries; the same data is always available in tables.
+
+## Phase 11 — Final quality assurance
+
+Automated checks added in this phase:
+
+- `src/routes/routes.test.jsx` covers unauthenticated redirects, the auth-loading status,
+  wrong-role redirects, and `/` dispatching ADMIN/LIBRARIAN/MEMBER to their own dashboards.
+- `src/test/axe.js` + `src/test/axe.test.jsx` run `axe-core` against the login screen, a
+  populated `DataTable`, and an open `ConfirmationDialog`. The contrast rule is disabled in
+  jsdom because it has no layout/canvas; contrast is checked from the tokens instead:
+  `text-warning-ink` (`#92400E`) is 7.09:1 on white and 6.46:1 on the 10% amber tint, and the
+  scoped navy focus ring (`#DBEAFE` on `#172554`) is 12.04:1.
+- Design-token alignment completed after the Phase 1 review: `--spacing-2xl` / `--spacing-3xl`,
+  `--radius-input` / `--radius-card` / `--radius-modal` / `--radius-section`, the darker
+  warning-ink colour, visible focus rings on all inputs, and self-deactivation/self-demotion
+  safeguards for the signed-in administrator.
+
+Manual QA checklist (needs a running backend and MariaDB; not covered by unit tests):
+
+1. Responsive smoke test at 375 px, 768 px and 1440 px: sidebar/mobile navigation, no
+   horizontal overflow, readable tables, and ~44×44 px touch targets.
+2. Keyboard-only pass from login: logical tab order, visible focus on every control (including
+   the navy sidebar), dialog focus trap/restore, and Escape/Enter behaviour.
+3. Screen-reader spot check: form labels and errors, table captions, status text that does not
+   rely on colour alone, and landmark headings on each dashboard.
+4. Run axe DevTools (with the colour-contrast rule enabled) against the built app, because
+   jsdom cannot measure real contrast or layout.
+5. Integration pass with real data for each role: confirm menus and URLs match the role,
+   confirm the backend rejects cross-role writes with 403, and confirm no `password_hash` is
+   ever returned or rendered.
+6. Workflow pass: settings save confirmation, issue/return with backend-calculated dates and
+   fines, payment recording, self-account safeguards, and report date-range requests.
+7. Reduced-motion check: confirm charts and transitions stop when the OS setting is enabled.
+
+Integration preconditions: a running Spring Boot backend, a persistent `JWT_SECRET`, at least
+one ADMIN account, and the existing schema validated by `ddl-auto=validate`. Never reset or
+drop tables for QA.
+
+### Manual QA results (Phase 1 findings 6–10)
+
+- Finding 6 — backend-limited search/filters: verified in the running UI. Users, members, loans
+  and fines each disclose that search/filtering applies only to the first 200 records returned by
+  the backend. No client-side-only filters were invented.
+- Finding 7 — loan date filters: not added. The UI offers search and status only; issue/due/return
+  dates are displayed from `LoanResponse` but are not advertised as filter inputs.
+- Finding 8 — fine dates: not added. `FineResponse` exposes no assessed/payment dates, so the list
+  shows amounts and status only; payment history comes from the dedicated payment endpoint.
+- Finding 9 — wording/role placement: accepted difference. The shell renders “Library Portal”
+  with the username and role in the header. Exact replacement wording was not supplied, so the
+  current text was left unchanged.
+- Finding 10 — integration/browser: login, role dashboards, settings, list pages and API calls were
+  smoke-tested against the local backend with seeded QA data. Lighthouse reported accessibility
+  1.0 on the login screen and the automated axe suite passes. A `POST /books` 500 was traced to
+  `MultipleBagFetchException` in `BookRepository.findByIdWithDetails`; the query now eagerly fetches
+  only `category` and `BookResponse` initialises the two lazy collections inside the service
+  transaction. Live recheck: `GET /books` 200, `GET /books/2` 200, `POST /books` 201, `GET` of the
+  created book 200, and cleanup `DELETE` 200. The observed 409s on `DELETE /books/2` and
+  `DELETE /categories/1` are expected `BusinessRuleException` guards because dependent copies,
+  author links, loan history and books still exist.
+- Verification after these changes: backend `mvnw.cmd clean test` → 79 tests passed; frontend
+  `npm.cmd test` → 69 tests passed; frontend `npm.cmd run build` → successful.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
@@ -182,4 +259,7 @@ tests. Phase 5 adds member search, create/update payload, status-change and prof
 tests. Phase 6 adds loan rendering, issue payload, return workflow and member scope tests.
 Phase 7 adds fine rendering, payment payload validation, backend-scoped member fines and
 staff-only detail/payment tests. Phase 8 adds user create/update payload, status-change and
-settings validation tests. Run `npm.cmd test` before proceeding to each subsequent phase.
+settings validation tests. Phase 9 adds report request parameters, date-range validation and
+rendered report totals tests (charts are mocked so assertions stay on the data). Phase 11 adds
+route-guard tests, `axe-core` checks, self-safeguard tests and settings-confirmation tests.
+Run `npm.cmd test` before proceeding to each subsequent phase.

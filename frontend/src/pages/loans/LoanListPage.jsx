@@ -60,7 +60,7 @@ export default function LoanListPage({ mode = 'all' }) {
         }
       />
 
-      <div className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base">
+      <div className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base">
         <SearchInput
           label="Search loans"
           value={search}
@@ -74,7 +74,7 @@ export default function LoanListPage({ mode = 'all' }) {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="min-h-11 rounded-md border border-border bg-surface px-md text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-md text-label"
             disabled={mode === 'active'}
           >
             <option value="">All statuses</option>

@@ -25,7 +25,7 @@ export const SearchInput = forwardRef(function SearchInput(
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full rounded-md border border-border bg-surface py-sm pl-xl pr-xl text-table placeholder:text-text-secondary focus:border-teal focus:outline-none"
+          className="w-full rounded-input border border-border bg-surface py-sm pl-xl pr-xl text-table placeholder:text-text-secondary focus:border-teal"
           {...props}
         />
         {value && onClear && (

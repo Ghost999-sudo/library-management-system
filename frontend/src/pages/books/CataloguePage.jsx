@@ -47,7 +47,7 @@ export default function CataloguePage() {
         breadcrumbs={[{ label: 'Member' }, { label: 'Browse Books' }]}
       />
 
-      <form onSubmit={submitSearch} className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base">
+      <form onSubmit={submitSearch} className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base">
         <SearchInput
           label="Search the catalogue"
           value={keyword}
@@ -61,7 +61,7 @@ export default function CataloguePage() {
           <select
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
-            className="min-h-11 rounded-md border border-border bg-surface px-md text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-md text-label"
           >
             <option value="">All categories</option>
             {(categories?.content || []).map((category) => (
@@ -83,7 +83,7 @@ export default function CataloguePage() {
       )}
 
       {!loading && books.length === 0 ? (
-        <div className="rounded-lg border border-border bg-surface">
+        <div className="rounded-card border border-border bg-surface">
           <EmptyState title="No books found" description="Try a different search term or clear your filters." />
         </div>
       ) : (

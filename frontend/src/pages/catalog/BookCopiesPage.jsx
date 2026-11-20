@@ -80,7 +80,7 @@ export default function BookCopiesPage() {
           <select
             value={row.status}
             onChange={(event) => setStatusChange({ copy: row, status: event.target.value })}
-            className="min-h-11 rounded-md border border-border bg-surface px-sm text-label"
+            className="min-h-11 rounded-input border border-border bg-surface px-sm text-label"
           >
             {BOOK_COPY_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}
           </select>
@@ -101,10 +101,10 @@ export default function BookCopiesPage() {
         }
       />
 
-      <div className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base">
+      <div className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base">
         <label className="flex min-w-[240px] flex-1 flex-col gap-xs text-label">
           Book
-          <select value={bookId} onChange={(event) => { setBookId(event.target.value); setStatusFilter('') }} className="min-h-11 rounded-md border border-border bg-surface px-md text-label" disabled={booksLoading}>
+          <select value={bookId} onChange={(event) => { setBookId(event.target.value); setStatusFilter('') }} className="min-h-11 rounded-input border border-border bg-surface px-md text-label" disabled={booksLoading}>
             <option value="">Choose a book…</option>
             {(books?.content || []).map((book) => (
               <option key={book.bookId} value={String(book.bookId)}>{book.title}</option>
@@ -113,7 +113,7 @@ export default function BookCopiesPage() {
         </label>
         <label className="flex flex-col gap-xs text-label">
           Status filter
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-11 rounded-md border border-border bg-surface px-md text-label" disabled={!bookId}>
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-11 rounded-input border border-border bg-surface px-md text-label" disabled={!bookId}>
             <option value="">All statuses</option>
             {BOOK_COPY_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}
           </select>
@@ -123,7 +123,7 @@ export default function BookCopiesPage() {
       {error && <ErrorState message={error.message} onRetry={run} />}
 
       {!bookId ? (
-        <div className="rounded-lg border border-border bg-surface p-xl text-center text-body text-text-secondary">
+        <div className="rounded-card border border-border bg-surface p-xl text-center text-body text-text-secondary">
           Select a book above to view and manage its physical copies.
         </div>
       ) : (

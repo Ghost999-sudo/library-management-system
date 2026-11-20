@@ -13,7 +13,7 @@ export function DataTable({
   onRowClick,
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+    <div className="overflow-x-auto rounded-card border border-border bg-surface">
       <table className="w-full min-w-[640px] text-left text-table" aria-busy={loading}>
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-background text-text-secondary">

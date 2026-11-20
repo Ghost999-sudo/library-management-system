@@ -74,7 +74,7 @@ export function ConfirmationDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="w-full max-w-md rounded-lg bg-surface p-lg shadow-xl"
+        className="w-full max-w-md rounded-modal bg-surface p-lg shadow-xl"
       >
         <h2 id={titleId} className="text-card font-semibold">
           {title}

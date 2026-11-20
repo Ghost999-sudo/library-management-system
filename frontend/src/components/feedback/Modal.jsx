@@ -60,7 +60,7 @@ export function Modal({ open, title, onClose, children, size = 'md' }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-lg bg-surface shadow-xl ${size === 'lg' ? 'max-w-2xl' : 'max-w-md'}`}
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-modal bg-surface shadow-xl ${size === 'lg' ? 'max-w-2xl' : 'max-w-md'}`}
       >
         <div className="flex items-center justify-between border-b border-border px-base py-md">
           <h2 id={titleId} className="text-card font-semibold">{title}</h2>

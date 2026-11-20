@@ -50,7 +50,7 @@ export default function FineDetailsPage() {
       {loading && <p className="text-body text-text-secondary">Loading fine details…</p>}
 
       {fine && (
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Fine summary</h2>
           <dl className="grid gap-base sm:grid-cols-2 lg:grid-cols-3">
             <div>
@@ -81,7 +81,7 @@ export default function FineDetailsPage() {
         </section>
       )}
 
-      <section className="rounded-lg border border-border bg-surface p-base">
+      <section className="rounded-card border border-border bg-surface p-base">
         <h2 className="mb-base text-card font-semibold">Payment history</h2>
         <PaymentHistoryTable payments={payments || []} loading={loading} />
       </section>

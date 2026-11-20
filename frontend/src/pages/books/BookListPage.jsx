@@ -78,7 +78,7 @@ export default function BookListPage() {
 
       <form
         onSubmit={(event) => { event.preventDefault(); setSubmitted(keyword.trim()); setPage(0) }}
-        className="flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base"
+        className="flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base"
       >
         <SearchInput
           label="Search books"

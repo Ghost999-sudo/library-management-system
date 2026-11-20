@@ -26,7 +26,7 @@ export default function ProfilePage() {
         breadcrumbs={[{ label: 'Account' }, { label: 'Profile' }]}
       />
 
-      <section className="rounded-lg border border-border bg-surface p-base">
+      <section className="rounded-card border border-border bg-surface p-base">
         <h2 className="mb-base text-card font-semibold">Account</h2>
         <dl className="grid grid-cols-1 gap-base sm:grid-cols-2">
           <div><dt className="text-support text-text-secondary">Username</dt><dd className="text-body">{user?.username || '—'}</dd></div>
@@ -37,7 +37,7 @@ export default function ProfilePage() {
       </section>
 
       {isMember && (
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Membership</h2>
           {error && <ErrorState message={error.message} onRetry={run} />}
           {loading && <p className="text-body text-text-secondary">Loading your membership details…</p>}

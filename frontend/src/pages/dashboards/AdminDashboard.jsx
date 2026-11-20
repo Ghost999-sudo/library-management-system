@@ -118,7 +118,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div className="mb-xs flex justify-between text-label">
-                  <span className="text-warning">Borrowed</span>
+                  <span className="text-warning-ink">Borrowed</span>
                   <span className="font-medium">{formatNumber(summary?.borrowedCopies)}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-border">

@@ -2,7 +2,7 @@ import { LoadingSkeleton } from './LoadingSkeleton.jsx'
 
 const TONES = {
   success: 'bg-success/10 text-success',
-  warning: 'bg-warning/10 text-warning',
+  warning: 'bg-warning/10 text-warning-ink',
   danger: 'bg-danger/10 text-danger',
   info: 'bg-info/10 text-info',
   neutral: 'bg-background text-text-secondary',
@@ -10,7 +10,7 @@ const TONES = {
 
 export function SummaryCard({ title, value, icon: Icon, tone = 'info', loading = false, hint }) {
   return (
-    <article className="rounded-lg border border-border bg-surface p-base shadow-sm">
+    <article className="rounded-card border border-border bg-surface p-base shadow-sm">
       <div className="flex items-center justify-between gap-sm">
         <p className="text-label font-medium text-text-secondary">{title}</p>
         {Icon && (

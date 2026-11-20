@@ -81,7 +81,7 @@ export default function IssueBookPage() {
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-lg">
         {formError && <AlertMessage variant="error" title="Unable to issue book">{formError}</AlertMessage>}
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">1. Member</h2>
           <FormSelect
             label="Active member"
@@ -101,7 +101,7 @@ export default function IssueBookPage() {
           />
         </section>
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">2. Book copy</h2>
           <div className="flex flex-col gap-base">
             <FormSelect

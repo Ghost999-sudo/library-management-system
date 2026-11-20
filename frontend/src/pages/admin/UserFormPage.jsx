@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { useAsync } from '../../hooks/useAsync.js'
 import { userService } from '../../services/userService.js'
 import { PageHeader } from '../../components/layout/PageHeader.jsx'
@@ -45,7 +46,9 @@ export default function UserFormPage() {
   const { userId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const { user: currentUser } = useAuth()
   const isEditing = Boolean(userId)
+  const isSelf = isEditing && String(userId) === String(currentUser?.userId)
   const listPath = location.pathname.replace(/\/(new|\d+\/edit)$/, '') || '/admin/users'
 
   const { data: user, loading: loadingUser, error: loadError, run: reload } = useAsync(
@@ -66,13 +69,22 @@ export default function UserFormPage() {
 
   useEffect(() => {
     if (!user) return
-    reset({ email: user.email || '', role: user.role || 'MEMBER', password: '' })
-  }, [user, reset])
+    reset({
+      email: user.email || '',
+      role: isSelf ? ROLES.ADMIN : (user.role || ROLES.MEMBER),
+      password: '',
+    })
+  }, [user, reset, isSelf])
 
   const onSubmit = async (values) => {
+    if (isSelf && values.role !== ROLES.ADMIN) {
+      setError('root', { message: 'You cannot remove your own ADMIN role. Ask another administrator.' })
+      return
+    }
+
     let payload
     if (isEditing) {
-      payload = { email: values.email, role: values.role }
+      payload = { email: values.email, role: isSelf ? ROLES.ADMIN : values.role }
       if (values.password) payload.password = values.password
     } else {
       payload = {
@@ -116,8 +128,14 @@ export default function UserFormPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-lg">
         {errors.root && <AlertMessage variant="error" title="Unable to save">{errors.root.message}</AlertMessage>}
+        {isSelf && (
+          <AlertMessage variant="info">
+            You are editing your own account. Your ADMIN role is locked here; another administrator
+            can change it.
+          </AlertMessage>
+        )}
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Account details</h2>
           <div className="grid grid-cols-1 gap-base md:grid-cols-2">
             {isEditing ? (
@@ -153,6 +171,8 @@ export default function UserFormPage() {
               name="role"
               required
               options={Object.values(ROLES)}
+              disabled={isSelf}
+              hint={isSelf ? 'Your own role cannot be changed.' : undefined}
               error={errors.role?.message}
               {...register('role')}
             />

@@ -15,7 +15,9 @@
   --color-text-secondary: #64748b;
   --color-border: #e2e8f0;
   --color-success: #15803d;
+  /* Amber stays as the warning fill; this darker ink is for warning *text*. */
   --color-warning: #d97706;
+  --color-warning-ink: #92400e;
   --color-danger: #dc2626;
   --color-info: #2563eb;
 
@@ -26,6 +28,27 @@
   --spacing-base: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+  --spacing-3xl: 48px;
+
+  /*
+   * Container widths. Custom `--spacing-*` tokens above shadow Tailwind's
+   * `max-w-*` scale, so declare these explicitly to keep cards and dialogs
+   * at usable widths instead of spacing-sized slivers.
+   */
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-3xl: 48rem;
+
+  /* Border radius: section 3.4 */
+  --radius-input: 8px;
+  --radius-card: 12px;
+  --radius-modal: 14px;
+  --radius-section: 16px;
 
   /* Typography */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;

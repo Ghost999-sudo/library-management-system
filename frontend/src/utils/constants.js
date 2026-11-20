@@ -31,6 +31,13 @@ export const NAVIGATION = Object.freeze({
       ],
     },
     {
+      label: 'Reports',
+      items: [
+        { label: 'Loan Reports', to: '/admin/reports/loans' },
+        { label: 'Fine Reports', to: '/admin/reports/fines' },
+      ],
+    },
+    {
       label: 'Administration',
       items: [
         { label: 'User Management', to: '/admin/users' },
@@ -57,6 +64,13 @@ export const NAVIGATION = Object.freeze({
         { label: 'Overdue Books', to: '/librarian/overdue' },
         { label: 'Fines', to: '/librarian/fines' },
         { label: 'Fine Payments', to: '/librarian/payments' },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
+        { label: 'Loan Reports', to: '/librarian/reports/loans' },
+        { label: 'Fine Reports', to: '/librarian/reports/fines' },
       ],
     },
     {

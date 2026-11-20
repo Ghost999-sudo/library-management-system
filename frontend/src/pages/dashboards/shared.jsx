@@ -14,7 +14,7 @@ export const loanColumns = [
 /** Consistent section framing across dashboards. */
 export function DashboardSection({ title, description, action, children }) {
   return (
-    <section className="rounded-lg border border-border bg-surface p-base">
+    <section className="rounded-card border border-border bg-surface p-base">
       <div className="mb-base flex flex-wrap items-start justify-between gap-sm">
         <div>
           <h2 className="text-card font-semibold">{title}</h2>

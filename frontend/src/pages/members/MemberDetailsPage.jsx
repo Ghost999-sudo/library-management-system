@@ -60,12 +60,12 @@ export default function MemberDetailsPage() {
 
       {member && (
         <>
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <h2 className="mb-base text-card font-semibold">Membership information</h2>
             <MemberDetails member={member} />
           </section>
 
-          <section className="rounded-lg border border-border bg-surface p-base">
+          <section className="rounded-card border border-border bg-surface p-base">
             <h2 className="mb-base text-card font-semibold">Membership status</h2>
             <FormSelect
               label="Status"

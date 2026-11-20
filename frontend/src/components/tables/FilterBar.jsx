@@ -5,7 +5,7 @@ export function FilterBar({ children, onClear, label = 'Filters', className = ''
     <div
       role="group"
       aria-label={label}
-      className={`flex flex-wrap items-end gap-md rounded-lg border border-border bg-surface p-base ${className}`}
+      className={`flex flex-wrap items-end gap-md rounded-card border border-border bg-surface p-base ${className}`}
     >
       {children}
       {onClear && (

@@ -3,7 +3,7 @@ import { CheckCircle2, CircleAlert, Info, TriangleAlert } from 'lucide-react'
 const VARIANTS = {
   success: { icon: CheckCircle2, style: 'border-success/30 bg-success/10 text-success' },
   info: { icon: Info, style: 'border-info/30 bg-info/10 text-info' },
-  warning: { icon: TriangleAlert, style: 'border-warning/30 bg-warning/10 text-warning' },
+  warning: { icon: TriangleAlert, style: 'border-warning/30 bg-warning/10 text-warning-ink' },
   error: { icon: CircleAlert, style: 'border-danger/30 bg-danger/10 text-danger' },
 }
 

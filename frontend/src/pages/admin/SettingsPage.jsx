@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,6 +9,7 @@ import { FormInput } from '../../components/forms/FormInput.jsx'
 import { Button } from '../../components/common/Button.jsx'
 import { AlertMessage } from '../../components/feedback/AlertMessage.jsx'
 import { ErrorState } from '../../components/feedback/ErrorState.jsx'
+import { ConfirmationDialog } from '../../components/feedback/ConfirmationDialog.jsx'
 import { notify } from '../../components/feedback/ToastNotification.jsx'
 import { getFieldErrors } from '../../utils/errors.js'
 
@@ -34,13 +35,15 @@ const schema = z.object({
 
 export default function SettingsPage() {
   const { data: settings, loading, error, run } = useAsync(() => settingsService.getSettings(), [])
+  const [pendingSave, setPendingSave] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const {
     register,
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ resolver: zodResolver(schema) })
 
   useEffect(() => {
@@ -54,15 +57,23 @@ export default function SettingsPage() {
     })
   }, [settings, reset])
 
-  const onSubmit = async (values) => {
+  const onSubmit = (values) => setPendingSave(values)
+
+  const saveSettings = async () => {
+    if (!pendingSave) return
+    setSaving(true)
     try {
-      await settingsService.updateSettings(values)
+      await settingsService.updateSettings(pendingSave)
       notify.success('Library settings saved.')
-      reset(values)
+      reset(pendingSave)
+      setPendingSave(null)
     } catch (errorSave) {
       const fieldErrors = getFieldErrors(errorSave)
       Object.entries(fieldErrors).forEach(([field, message]) => setError(field, { message }))
       setError('root', { message: errorSave.message || 'Could not save the settings.' })
+      setPendingSave(null)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -88,7 +99,7 @@ export default function SettingsPage() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-lg">
         {errors.root && <AlertMessage variant="error" title="Unable to save">{errors.root.message}</AlertMessage>}
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Borrowing policy</h2>
           <div className="grid grid-cols-1 gap-base md:grid-cols-2">
             <FormInput
@@ -127,7 +138,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-border bg-surface p-base">
+        <section className="rounded-card border border-border bg-surface p-base">
           <h2 className="mb-base text-card font-semibold">Fine policy</h2>
           <div className="grid grid-cols-1 gap-base md:grid-cols-2">
             <FormInput
@@ -156,12 +167,22 @@ export default function SettingsPage() {
         </section>
 
         <div className="flex flex-wrap gap-sm">
-          <Button type="submit" loading={isSubmitting || loading} disabled={loading}>
+          <Button type="submit" loading={loading || saving} disabled={loading || saving}>
             Save settings
           </Button>
-          <Button variant="secondary" onClick={run} disabled={loading}>Reload</Button>
+          <Button variant="secondary" onClick={run} disabled={loading || saving}>Reload</Button>
         </div>
       </form>
+
+      <ConfirmationDialog
+        open={Boolean(pendingSave)}
+        title="Save library settings?"
+        description="These borrowing and fine policies apply immediately to future issues and returns."
+        confirmLabel="Save settings"
+        tone="primary"
+        onConfirm={saveSettings}
+        onCancel={() => setPendingSave(null)}
+      />
     </div>
   )
 }

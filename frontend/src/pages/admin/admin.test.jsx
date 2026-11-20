@@ -8,7 +8,7 @@ import SettingsPage from './SettingsPage.jsx'
 
 const {
   mockGetUsers, mockGetById, mockCreateUser, mockUpdateUser, mockChangeStatus,
-  mockGetSettings, mockUpdateSettings,
+  mockGetSettings, mockUpdateSettings, mockAuthUser,
 } = vi.hoisted(() => ({
   mockGetUsers: vi.fn(),
   mockGetById: vi.fn(),
@@ -17,6 +17,11 @@ const {
   mockChangeStatus: vi.fn(),
   mockGetSettings: vi.fn(),
   mockUpdateSettings: vi.fn(),
+  mockAuthUser: { userId: 999, role: 'ADMIN' },
+}))
+
+vi.mock('../../context/AuthContext.jsx', () => ({
+  useAuth: () => ({ user: mockAuthUser }),
 }))
 
 vi.mock('../../services/userService.js', () => ({
@@ -61,6 +66,8 @@ const settings = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockAuthUser.userId = 999
+  mockAuthUser.role = 'ADMIN'
   mockGetUsers.mockResolvedValue(paged([user(1), user(2)]))
   mockGetById.mockResolvedValue(user(2))
   mockCreateUser.mockResolvedValue(user(3))
@@ -82,6 +89,19 @@ describe('UserListPage', () => {
     await ui.click(within(dialog).getByRole('button', { name: 'Deactivate' }))
 
     await waitFor(() => expect(mockChangeStatus).toHaveBeenCalledWith(1, 'INACTIVE'))
+  })
+
+  it('prevents the signed-in administrator from deactivating their own account', async () => {
+    mockAuthUser.userId = 1
+    const ui = userEvent.setup()
+    render(<MemoryRouter><UserListPage /></MemoryRouter>)
+
+    const row = (await screen.findByText('admin1')).closest('tr')
+    const deactivate = within(row).getByRole('button', { name: 'Deactivate' })
+    expect(deactivate).toBeDisabled()
+    await ui.click(deactivate)
+
+    expect(mockChangeStatus).not.toHaveBeenCalled()
   })
 })
 
@@ -133,10 +153,33 @@ describe('UserFormPage', () => {
       })
     })
   })
+
+  it('locks the role when editing your own account', async () => {
+    mockAuthUser.userId = 2
+    mockGetById.mockResolvedValue(user(2, { role: 'ADMIN' }))
+    const ui = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/admin/users/2/edit']}>
+        <Routes><Route path="/admin/users/:userId/edit" element={<UserFormPage />} /></Routes>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => expect(screen.getByLabelText(/^email\b/i)).toHaveValue('alice@example.com'))
+    expect(screen.getByLabelText(/^role\b/i)).toBeDisabled()
+    expect(screen.getByText(/your admin role is locked here/i)).toBeInTheDocument()
+
+    await ui.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => {
+      expect(mockUpdateUser).toHaveBeenCalledWith('2', {
+        email: 'alice@example.com',
+        role: 'ADMIN',
+      })
+    })
+  })
 })
 
 describe('SettingsPage', () => {
-  it('submits all five policy numbers without the response-only settingId', async () => {
+  it('saves all five policy numbers only after confirmation', async () => {
     const ui = userEvent.setup()
     render(<SettingsPage />)
 
@@ -144,6 +187,10 @@ describe('SettingsPage', () => {
     await ui.clear(screen.getByLabelText(/borrowing limit/i))
     await ui.type(screen.getByLabelText(/borrowing limit/i), '8')
     await ui.click(screen.getByRole('button', { name: /save settings/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(mockUpdateSettings).not.toHaveBeenCalled()
+    await ui.click(within(dialog).getByRole('button', { name: /save settings/i }))
 
     await waitFor(() => {
       expect(mockUpdateSettings).toHaveBeenCalledWith({
@@ -156,6 +203,19 @@ describe('SettingsPage', () => {
     })
   })
 
+  it('does not save when the confirmation is cancelled', async () => {
+    const ui = userEvent.setup()
+    render(<SettingsPage />)
+
+    await waitFor(() => expect(screen.getByLabelText(/borrowing limit/i)).toHaveValue(5))
+    await ui.click(screen.getByRole('button', { name: /save settings/i }))
+    const dialog = await screen.findByRole('dialog')
+    await ui.click(within(dialog).getByRole('button', { name: /cancel/i }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(mockUpdateSettings).not.toHaveBeenCalled()
+  })
+
   it('blocks a negative fine rate before reaching the API', async () => {
     const ui = userEvent.setup()
     render(<SettingsPage />)
@@ -166,6 +226,7 @@ describe('SettingsPage', () => {
     await ui.click(screen.getByRole('button', { name: /save settings/i }))
 
     expect(await screen.findByText(/fine per day cannot be negative/i)).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(mockUpdateSettings).not.toHaveBeenCalled()
   })
 })

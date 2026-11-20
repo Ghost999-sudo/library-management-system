@@ -21,8 +21,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("select count(ba) from BookAuthor ba where ba.book.bookId = :bookId")
     long countAuthorLinksByBookId(@Param("bookId") Long bookId);
 
-    /** Loads a single title with its relations for the detail response. */
-    @EntityGraph(attributePaths = {"category", "bookAuthors", "bookAuthors.author", "copies"})
+    /**
+     * Eagerly loads only the category. BookResponse initialises the two lazy
+     * collection bags inside the service transaction; fetching both bags in
+     * this query would trigger Hibernate's MultipleBagFetchException.
+     */
+    @EntityGraph(attributePaths = "category")
     @Query("select distinct b from Book b where b.bookId = :bookId")
     java.util.Optional<Book> findByIdWithDetails(@Param("bookId") Long bookId);
 
