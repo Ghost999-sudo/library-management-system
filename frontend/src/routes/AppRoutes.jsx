@@ -17,6 +17,10 @@ import MemberListPage from '../pages/members/MemberListPage.jsx'
 import MemberFormPage from '../pages/members/MemberFormPage.jsx'
 import MemberDetailsPage from '../pages/members/MemberDetailsPage.jsx'
 import ProfilePage from '../pages/members/ProfilePage.jsx'
+import LoanListPage from '../pages/loans/LoanListPage.jsx'
+import IssueBookPage from '../pages/loans/IssueBookPage.jsx'
+import OverdueLoansPage from '../pages/loans/OverdueLoansPage.jsx'
+import MyLoansPage from '../pages/loans/MyLoansPage.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import RoleBasedRoute from './RoleBasedRoute.jsx'
 
@@ -36,6 +40,13 @@ const staffCatalogRoutes = (prefix) => [
   { path: `${prefix}/book-copies`, element: <BookCopiesPage /> },
 ]
 
+const staffLoanRoutes = (prefix) => [
+  { path: `${prefix}/loans`, element: <LoanListPage /> },
+  { path: `${prefix}/loans/issue`, element: <IssueBookPage /> },
+  { path: `${prefix}/returns`, element: <LoanListPage mode="active" /> },
+  { path: `${prefix}/overdue`, element: <OverdueLoansPage /> },
+]
+
 const staffMemberRoutes = (prefix) => [
   { path: `${prefix}/members`, element: <MemberListPage /> },
   { path: `${prefix}/members/new`, element: <MemberFormPage /> },
@@ -45,10 +56,11 @@ const staffMemberRoutes = (prefix) => [
 ]
 
 const featureRoutes = {
-  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin')],
-  [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian')],
+  [ROLES.ADMIN]: [...staffCatalogRoutes('/admin'), ...staffMemberRoutes('/admin'), ...staffLoanRoutes('/admin')],
+  [ROLES.LIBRARIAN]: [...staffCatalogRoutes('/librarian'), ...staffMemberRoutes('/librarian'), ...staffLoanRoutes('/librarian')],
   [ROLES.MEMBER]: [
     { path: '/member/catalogue', element: <CataloguePage /> },
+    { path: '/member/loans', element: <MyLoansPage /> },
     { path: '/member/profile', element: <ProfilePage /> },
   ],
 }

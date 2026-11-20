@@ -1,7 +1,7 @@
 # Library Management System — Frontend
 
 React + Vite frontend for the Spring Boot Library Management System. Built incrementally;
-**Phases 1–5 (setup, shared UI, login/dashboards, catalog and members) are complete**.
+**Phases 1–6 (setup, shared UI, login/dashboards, catalog, members and loans) are complete**.
 Remaining feature screens arrive in later phases.
 
 ## Requirements
@@ -50,7 +50,7 @@ src/
   routes/         AppRoutes, ProtectedRoute, RoleBasedRoute
   layouts/        AuthLayout, DashboardLayout
   components/     common / layout / forms / tables / feedback
-  pages/          auth, dashboards, books, catalog + members complete; rest in Phases 6-10
+  pages/          auth, dashboards, books, catalog, members + loans complete; rest in Phases 7-10
   test/           test setup
 ```
 
@@ -126,6 +126,22 @@ src/
   MEMBER users additionally load their own record from `/members/me`.
 - Never exposes password hashes; account fields are never sent on update.
 
+## Loan management (Phase 6)
+
+- `pages/loans/IssueBookPage.jsx` — staff select an ACTIVE member and a book, then an
+  available copy from `/books/{bookId}/copies/available`. The request contains only
+  `memberId` and `copyId`; the backend calculates issue/due dates and enforces borrowing
+  limits, fine limits and copy availability.
+- `pages/loans/LoanListPage.jsx` — all-loan history with search/status filtering, plus
+  `mode="active"` for the Returns screen. Searching filters the first 200 loans locally;
+  the UI states this limitation.
+- `pages/loans/OverdueLoansPage.jsx` — server-paginated `/loans/overdue`, so overdue means
+  genuinely past due on the backend, not a browser-clock guess.
+- `pages/loans/MyLoansPage.jsx` — MEMBER-only `/loans/me`, no return action because returns
+  are staff-only. The “overdue” label is marked as an estimate.
+- `hooks/useReturnLoan.js` + `components/loans/` — one confirmed return workflow. The
+  optional fine from `ReturnResponse.fine` is shown in the success toast.
+
 ## Testing
 
 Phase 1 smoke tests cover the route scaffold and role-based navigation. Phase 2 adds
@@ -133,4 +149,5 @@ tests for shared buttons, badges, tables, pagination, dialogs, alerts, form cont
 and formatting helpers. Phase 3 adds login validation/redirect tests and dashboard data
 tests. Phase 4 adds catalogue search, book-form payload, category CRUD and copy-filter
 tests. Phase 5 adds member search, create/update payload, status-change and profile-scope
-tests. Run `npm.cmd test` before proceeding to each subsequent phase.
+tests. Phase 6 adds loan rendering, issue payload, return workflow and member scope tests.
+Run `npm.cmd test` before proceeding to each subsequent phase.
