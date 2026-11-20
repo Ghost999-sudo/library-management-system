@@ -142,6 +142,26 @@ src/
 - `hooks/useReturnLoan.js` + `components/loans/` — one confirmed return workflow. The
   optional fine from `ReturnResponse.fine` is shown in the success toast.
 
+## Borrow requests (member requests + librarian approval)
+
+This is an additive workflow; the existing `loans` table and its `BORROWED`/`RETURNED`
+enum are unchanged. Run `backend/src/main/resources/db/borrow_requests.sql` once before
+starting the backend, because `ddl-auto=validate` requires the new table to exist.
+
+- `pages/books/CataloguePage.jsx` — members open a book and choose “Request this book”.
+  Only `bookId` is sent; the librarian selects the physical copy later.
+- `pages/loans/MyBorrowRequestsPage.jsx` — MEMBER-only `/borrow-requests/me`, read-only.
+  A pending request reserves nothing and starts no due date.
+- `pages/loans/BorrowRequestsPage.jsx` — staff queue at `/{role}/loans/requests`.
+  Approving opens a copy picker and uses `/borrow-requests/{id}/approve`; rejecting
+  records an optional reason. Both decisions are final and locked server-side.
+- `services/borrowRequestService.js` + `components/loans/BorrowRequestHelpers.jsx` —
+  API calls and shared accessible table/dialog components.
+- Backend endpoints: `POST /borrow-requests` (MEMBER), `GET /borrow-requests/me`
+  (MEMBER), `GET /borrow-requests` (staff), `POST /borrow-requests/{id}/approve`
+  (staff), `POST /borrow-requests/{id}/reject` (staff). All dates, the loan row and
+  the copy status are still calculated by `LoanService`.
+
 ## Fine management (Phase 7)
 
 - `pages/fines/FineListPage.jsx` — staff fine history with search/status filtering, plus

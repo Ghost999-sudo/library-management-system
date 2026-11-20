@@ -22,6 +22,8 @@ import LoanListPage from '../pages/loans/LoanListPage.jsx'
 import IssueBookPage from '../pages/loans/IssueBookPage.jsx'
 import OverdueLoansPage from '../pages/loans/OverdueLoansPage.jsx'
 import MyLoansPage from '../pages/loans/MyLoansPage.jsx'
+import BorrowRequestsPage from '../pages/loans/BorrowRequestsPage.jsx'
+import MyBorrowRequestsPage from '../pages/loans/MyBorrowRequestsPage.jsx'
 import FineListPage from '../pages/fines/FineListPage.jsx'
 import FineDetailsPage from '../pages/fines/FineDetailsPage.jsx'
 import MyFinesPage from '../pages/fines/MyFinesPage.jsx'
@@ -53,6 +55,7 @@ const staffCatalogRoutes = (prefix) => [
 
 const staffLoanRoutes = (prefix) => [
   { path: `${prefix}/loans`, element: <LoanListPage /> },
+  { path: `${prefix}/loans/requests`, element: <BorrowRequestsPage /> },
   { path: `${prefix}/loans/issue`, element: <IssueBookPage /> },
   { path: `${prefix}/returns`, element: <LoanListPage mode="active" /> },
   { path: `${prefix}/overdue`, element: <OverdueLoansPage /> },
@@ -91,6 +94,7 @@ const featureRoutes = {
   [ROLES.MEMBER]: [
     { path: '/member/catalogue', element: <CataloguePage /> },
     { path: '/member/loans', element: <MyLoansPage /> },
+    { path: '/member/requests', element: <MyBorrowRequestsPage /> },
     { path: '/member/fines', element: <MyFinesPage /> },
     { path: '/member/profile', element: <ProfilePage /> },
   ],

@@ -24,14 +24,15 @@ class EntityMappingTest {
     }
 
     @Test
-    void allElevenEntitiesAreManaged() {
+    void allTwelveEntitiesAreManaged() {
         Set<String> entityNames = entityManagerFactory.getMetamodel().getEntities().stream()
                 .map(EntityType::getName)
                 .collect(Collectors.toSet());
 
-        assertEquals(11, entityNames.size(), "Unexpected number of managed entities: " + entityNames);
+        assertEquals(12, entityNames.size(), "Unexpected number of managed entities: " + entityNames);
         assertTrue(entityNames.containsAll(Set.of(
                 "User", "Member", "Category", "Author", "Book", "BookAuthor",
-                "BookCopy", "Loan", "Fine", "FinePayment", "LibrarySettings")));
+                "BookCopy", "Loan", "Fine", "FinePayment", "LibrarySettings",
+                "BorrowRequest")));
     }
 }

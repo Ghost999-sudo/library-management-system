@@ -10,10 +10,20 @@ import BookCopiesPage from './BookCopiesPage.jsx'
 const {
   mockGetBooks, mockSearchBooks, mockGetCategories, mockGetAuthors,
   mockCreateBook, mockGetCopies, mockCreateCategory, mockDeleteCategory, mockAddCopy,
+  mockRequestBook,
 } = vi.hoisted(() => ({
   mockGetBooks: vi.fn(), mockSearchBooks: vi.fn(), mockGetCategories: vi.fn(),
   mockGetAuthors: vi.fn(), mockCreateBook: vi.fn(), mockGetCopies: vi.fn(),
   mockCreateCategory: vi.fn(), mockDeleteCategory: vi.fn(), mockAddCopy: vi.fn(),
+  mockRequestBook: vi.fn(),
+}))
+
+vi.mock('../../context/AuthContext.jsx', () => ({
+  useAuth: () => ({ user: { role: 'MEMBER' }, hasRole: (role) => role === 'MEMBER' }),
+}))
+
+vi.mock('../../services/borrowRequestService.js', () => ({
+  borrowRequestService: { requestBook: mockRequestBook },
 }))
 
 vi.mock('../../services/catalogService.js', () => ({
@@ -57,6 +67,7 @@ beforeEach(() => {
   mockCreateCategory.mockResolvedValue({ categoryId: 2, categoryName: 'History' })
   mockDeleteCategory.mockResolvedValue({})
   mockAddCopy.mockResolvedValue({ copyId: 1, accessionNumber: 'ACC-99', status: 'AVAILABLE' })
+  mockRequestBook.mockResolvedValue({ requestId: 1, status: 'PENDING' })
 })
 
 describe('CataloguePage', () => {
@@ -74,6 +85,16 @@ describe('CataloguePage', () => {
       expect(mockSearchBooks).toHaveBeenCalledWith('refactor', expect.objectContaining({ page: 0, size: 12 }))
     })
     expect(await screen.findByText('Refactoring')).toBeInTheDocument()
+  })
+
+  it('sends a title-only borrow request from book details', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter><CataloguePage /></MemoryRouter>)
+
+    await user.click(await screen.findByRole('button', { name: 'View details' }))
+    await user.click(await screen.findByRole('button', { name: /request this book/i }))
+
+    await waitFor(() => expect(mockRequestBook).toHaveBeenCalledWith(1))
   })
 })
 

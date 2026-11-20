@@ -5,15 +5,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LoanListPage from './LoanListPage.jsx'
 import IssueBookPage from './IssueBookPage.jsx'
 import MyLoansPage from './MyLoansPage.jsx'
+import BorrowRequestsPage from './BorrowRequestsPage.jsx'
+import MyBorrowRequestsPage from './MyBorrowRequestsPage.jsx'
 import OverdueLoansPage from './OverdueLoansPage.jsx'
 
 const {
   mockGetLoans, mockGetOverdue, mockGetMyLoans, mockIssueBook, mockReturnBook,
   mockGetMembers, mockGetBooks, mockGetAvailableCopies,
+  mockGetRequests, mockGetMyRequests, mockApprove, mockReject,
 } = vi.hoisted(() => ({
   mockGetLoans: vi.fn(), mockGetOverdue: vi.fn(), mockGetMyLoans: vi.fn(),
   mockIssueBook: vi.fn(), mockReturnBook: vi.fn(), mockGetMembers: vi.fn(),
   mockGetBooks: vi.fn(), mockGetAvailableCopies: vi.fn(),
+  mockGetRequests: vi.fn(), mockGetMyRequests: vi.fn(),
+  mockApprove: vi.fn(), mockReject: vi.fn(),
 }))
 
 vi.mock('../../services/loanService.js', () => ({
@@ -23,6 +28,15 @@ vi.mock('../../services/loanService.js', () => ({
     getMyLoans: mockGetMyLoans,
     issueBook: mockIssueBook,
     returnBook: mockReturnBook,
+  },
+}))
+
+vi.mock('../../services/borrowRequestService.js', () => ({
+  borrowRequestService: {
+    getRequests: mockGetRequests,
+    getMyRequests: mockGetMyRequests,
+    approve: mockApprove,
+    reject: mockReject,
   },
 }))
 
@@ -57,6 +71,20 @@ const paged = (loans) => ({
   totalPages: 1,
 })
 
+const borrowRequest = (overrides = {}) => ({
+  requestId: 7,
+  bookId: 5,
+  bookTitle: 'Clean Code',
+  memberId: 1,
+  memberName: 'Alice Carter',
+  status: 'PENDING',
+  requestDate: '2026-01-01',
+  decidedBy: null,
+  decidedDate: null,
+  note: null,
+  ...overrides,
+})
+
 const memberPage = {
   content: [{
     memberId: 1, userId: 101, username: 'alice1', email: 'alice@example.com',
@@ -86,6 +114,10 @@ beforeEach(() => {
   mockGetAvailableCopies.mockResolvedValue([
     { copyId: 11, accessionNumber: 'ACC-11', status: 'AVAILABLE', acquiredDate: '2025-01-01' },
   ])
+  mockGetRequests.mockResolvedValue(paged([borrowRequest()]))
+  mockGetMyRequests.mockResolvedValue(paged([borrowRequest()]))
+  mockApprove.mockResolvedValue({ ...loan(4), dueDate: '2026-02-14' })
+  mockReject.mockResolvedValue(borrowRequest({ status: 'REJECTED', note: 'No copies available' }))
 })
 
 describe('LoanListPage', () => {
@@ -136,6 +168,41 @@ describe('MyLoansPage', () => {
     expect(screen.queryByRole('button', { name: 'Return' })).not.toBeInTheDocument()
     expect(mockGetMyLoans).toHaveBeenCalled()
     expect(mockGetLoans).not.toHaveBeenCalled()
+  })
+})
+
+describe('BorrowRequestsPage', () => {
+  it('approves a pending request with a chosen available copy', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter><BorrowRequestsPage /></MemoryRouter>)
+
+    await user.click(await screen.findByRole('button', { name: 'Approve' }))
+    await user.selectOptions(await screen.findByLabelText(/available copy/i), '11')
+    await user.click(screen.getByRole('button', { name: /approve and issue/i }))
+
+    await waitFor(() => expect(mockApprove).toHaveBeenCalledWith(7, 11))
+  })
+
+  it('rejects a pending request with an optional reason', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter><BorrowRequestsPage /></MemoryRouter>)
+
+    await user.click(await screen.findByRole('button', { name: 'Reject' }))
+    await user.type(await screen.findByLabelText(/reason \(optional\)/i), 'No copies available')
+    await user.click(screen.getByRole('button', { name: /reject request/i }))
+
+    await waitFor(() => expect(mockReject).toHaveBeenCalledWith(7, 'No copies available'))
+  })
+})
+
+describe('MyBorrowRequestsPage', () => {
+  it('uses the member-scoped request endpoint and offers no decision actions', async () => {
+    render(<MemoryRouter><MyBorrowRequestsPage /></MemoryRouter>)
+
+    expect(await screen.findByText('Clean Code')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
+    expect(mockGetMyRequests).toHaveBeenCalled()
+    expect(mockGetRequests).not.toHaveBeenCalled()
   })
 })
 

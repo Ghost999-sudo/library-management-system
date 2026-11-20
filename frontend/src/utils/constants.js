@@ -25,6 +25,7 @@ export const NAVIGATION = Object.freeze({
         { label: 'Book Copies', to: '/admin/book-copies' },
         { label: 'Members', to: '/admin/members' },
         { label: 'Loans', to: '/admin/loans' },
+        { label: 'Borrow Requests', to: '/admin/loans/requests' },
         { label: 'Returns', to: '/admin/returns' },
         { label: 'Fines', to: '/admin/fines' },
         { label: 'Fine Payments', to: '/admin/payments' },
@@ -60,6 +61,7 @@ export const NAVIGATION = Object.freeze({
         { label: 'Book Copies', to: '/librarian/book-copies' },
         { label: 'Members', to: '/librarian/members' },
         { label: 'Loans', to: '/librarian/loans' },
+        { label: 'Borrow Requests', to: '/librarian/loans/requests' },
         { label: 'Returns', to: '/librarian/returns' },
         { label: 'Overdue Books', to: '/librarian/overdue' },
         { label: 'Fines', to: '/librarian/fines' },
@@ -88,6 +90,7 @@ export const NAVIGATION = Object.freeze({
         { label: 'Dashboard', to: '/member/dashboard' },
         { label: 'Browse Books', to: '/member/catalogue' },
         { label: 'My Loans', to: '/member/loans' },
+        { label: 'My Requests', to: '/member/requests' },
         { label: 'My Fines', to: '/member/fines' },
       ],
     },
@@ -100,6 +103,7 @@ export const NAVIGATION = Object.freeze({
 
 export const BOOK_COPY_STATUS = Object.freeze(['AVAILABLE', 'BORROWED', 'DAMAGED', 'LOST'])
 export const LOAN_STATUS = Object.freeze(['BORROWED', 'RETURNED'])
+export const BORROW_REQUEST_STATUS = Object.freeze(['PENDING', 'APPROVED', 'REJECTED'])
 export const FINE_STATUS = Object.freeze(['UNPAID', 'PARTIALLY_PAID', 'PAID', 'WAIVED'])
 export const USER_STATUS = Object.freeze(['ACTIVE', 'INACTIVE'])
 export const MEMBER_STATUS = Object.freeze(['ACTIVE', 'INACTIVE'])
@@ -109,6 +113,9 @@ export const PAYMENT_METHODS = Object.freeze(['CASH', 'OTHER'])
 export const STATUS_TONE = Object.freeze({
   AVAILABLE: 'success',
   BORROWED: 'info',
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
   OVERDUE: 'danger',
   DAMAGED: 'warning',
   LOST: 'danger',

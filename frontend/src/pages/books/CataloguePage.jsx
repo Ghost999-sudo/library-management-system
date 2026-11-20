@@ -2,22 +2,29 @@ import { useEffect, useState } from 'react'
 import { useAsync } from '../../hooks/useAsync.js'
 import { usePagination } from '../../hooks/usePagination.js'
 import { catalogService } from '../../services/catalogService.js'
+import { borrowRequestService } from '../../services/borrowRequestService.js'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { PageHeader } from '../../components/layout/PageHeader.jsx'
 import { SearchInput } from '../../components/tables/SearchInput.jsx'
 import { Pagination } from '../../components/tables/Pagination.jsx'
 import { Button } from '../../components/common/Button.jsx'
 import { EmptyState } from '../../components/common/EmptyState.jsx'
 import { ErrorState } from '../../components/feedback/ErrorState.jsx'
+import { AlertMessage } from '../../components/feedback/AlertMessage.jsx'
 import { Modal } from '../../components/feedback/Modal.jsx'
+import { notify } from '../../components/feedback/ToastNotification.jsx'
 import { BookCard, authorNames } from '../../components/books/BookHelpers.jsx'
 import { formatDate } from '../../utils/format.js'
 
 export default function CataloguePage() {
+  const { hasRole } = useAuth()
   const { page, size, setPage, query } = usePagination(12)
   const [keyword, setKeyword] = useState('')
   const [submitted, setSubmitted] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [selected, setSelected] = useState(null)
+  const [requesting, setRequesting] = useState(false)
+  const [requestError, setRequestError] = useState(null)
 
   const { data: categories } = useAsync(() => catalogService.getCategories({ size: 200 }), [])
   const { data, loading, error, run } = useAsync(
@@ -37,6 +44,22 @@ export default function CataloguePage() {
   const submitSearch = (event) => {
     event.preventDefault()
     setSubmitted(keyword.trim())
+  }
+
+  const requestBook = async () => {
+    if (!selected) return
+    setRequesting(true)
+    setRequestError(null)
+    try {
+      await borrowRequestService.requestBook(selected.bookId)
+      notify.success('Request sent. A librarian will review it.')
+      setSelected(null)
+      run()
+    } catch (error) {
+      setRequestError(error.message || 'Could not send this request.')
+    } finally {
+      setRequesting(false)
+    }
   }
 
   return (
@@ -89,7 +112,11 @@ export default function CataloguePage() {
       ) : (
         <div className="grid grid-cols-1 gap-base sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {books.map((book) => (
-            <BookCard key={book.bookId} book={book} onOpen={setSelected} />
+            <BookCard
+              key={book.bookId}
+              book={book}
+              onOpen={(value) => { setSelected(value); setRequestError(null) }}
+            />
           ))}
         </div>
       )}
@@ -101,7 +128,12 @@ export default function CataloguePage() {
         onPageChange={setPage}
       />
 
-      <Modal open={Boolean(selected)} title={selected?.title || 'Book details'} onClose={() => setSelected(null)} size="lg">
+      <Modal
+        open={Boolean(selected)}
+        title={selected?.title || 'Book details'}
+        onClose={() => { setSelected(null); setRequestError(null) }}
+        size="lg"
+      >
         {selected && (
           <div className="flex flex-col gap-base text-body">
             <p><span className="font-medium">Authors:</span> {authorNames(selected)}</p>
@@ -125,6 +157,22 @@ export default function CataloguePage() {
                 </ul>
               )}
             </div>
+
+            {hasRole('MEMBER') ? (
+              <div className="flex flex-wrap items-center gap-sm border-t border-border pt-base">
+                <Button onClick={requestBook} loading={requesting}>Request this book</Button>
+                <span className="text-support text-text-secondary">
+                  A librarian reviews the request before any copy is issued.
+                </span>
+                {requestError && (
+                  <div className="w-full"><AlertMessage variant="error">{requestError}</AlertMessage></div>
+                )}
+              </div>
+            ) : (
+              <div className="border-t border-border pt-base text-support text-text-secondary">
+                Borrow requests are available to members. Staff can issue books from Loans.
+              </div>
+            )}
           </div>
         )}
       </Modal>
